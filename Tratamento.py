@@ -246,11 +246,12 @@ if upload_file:
               'Número', 'Marca', 'Função', 'Anterior', 'Atual', 'Anomalia']
              ]
 
-    # noinspection PyUnboundLocalVariable
-    st.dataframe(geral5)
 
     # remover coluna de index
     geral5.set_index('Nr. Roteiro', inplace=True)
+
+    # noinspection PyUnboundLocalVariable
+    st.dataframe(geral5)
 
     # converção do ficheiro para o formato csv e baixar o mesmo
     @st.cache_data
