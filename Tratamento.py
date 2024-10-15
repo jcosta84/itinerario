@@ -257,7 +257,7 @@ if upload_file:
     @st.cache_data
     def convert_df(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(sep=';').encode('utf-8-sig')
+        return df.to_csv(sep=';', decimal=',').encode('utf-8-sig')
 
 
     csv = convert_df(geral5)
@@ -307,7 +307,7 @@ if upload_file:
     @st.cache_data
     def convert_df2(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(sep=';').encode('utf-8-sig')
+        return df.to_csv(sep=';', decimal=',').encode('utf-8-sig')
 
 
     csv = convert_df2(geral6)
