@@ -1,8 +1,7 @@
 import pandas as pd
 import streamlit as st
 import openpyxl
-
-
+from unicodedata import decimal
 
 st.set_page_config(page_title="Itinerario",
                    page_icon=":bar_chart:",
@@ -29,6 +28,10 @@ def carregar_remota():
     remota1 = pd.read_excel(upload_file, engine="openpyxl")
     return remota1
 
+#inserção de periodo
+def carregar_periodo():
+    periodo1 = pd.read_excel(upload_file, engine="openpyxl")
+    return periodo1
 
 #---------------------------------------importação e tratamento-----------------------------
 st.subheader("Importação de Itinerarios e Leitura Remota")
@@ -188,7 +191,7 @@ if upload_file:
 
     # organizar
     geral2 = geral.loc[:,
-             ['Unidade', 'Tipo Contador', 'Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ', ' Rua ', ' Cliente',
+             ['Unidade', 'Tipo Contador', 'Data Time', 'Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ', ' Rua ', ' Cliente',
               'Ponto de Medida', 'CIL',
               'Número', 'Marca', 'Função',
               'Anterior', 'Leitura', 'Anomalia']]
@@ -206,7 +209,7 @@ if upload_file:
 
     # alterar ordem de apresentação
     geral4 = geral3.loc[:,
-             ['Unidade', 'Analise Leitura', 'Tipo Contador', 'Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ',
+             ['Unidade', 'Analise Leitura', 'Tipo Contador', 'Data Time', 'Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ',
               ' Rua ', ' Cliente',
               'Ponto de Medida', 'CIL',
               'Número', 'Marca', 'Função',
@@ -246,12 +249,16 @@ if upload_file:
               'Número', 'Marca', 'Função', 'Anterior', 'Atual', 'Anomalia']
              ]
 
+    # noinspection PyUnboundLocalVariable
+    st.dataframe(geral5)
+
+
 
     # remover coluna de index
     geral5.set_index('Nr. Roteiro', inplace=True)
 
-    # noinspection PyUnboundLocalVariable
-    st.dataframe(geral5)
+
+    
 
     # converção do ficheiro para o formato csv e baixar o mesmo
     @st.cache_data
@@ -274,6 +281,9 @@ if upload_file:
     st.markdown("---")
 
     st.subheader("Analise de Leituras Remotas")
+
+
+
     # definir campos de pesquisa
     st.sidebar.header("Analise Leitura:")
 
@@ -293,31 +303,46 @@ if upload_file:
 
     # alterar ordem para apresentação e extração
     geral6 = geral_selection2.loc[:,
-             ['Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ', ' Rua ', ' Cliente', 'Ponto de Medida', 'CIL',
+             ['Data Time','Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ', ' Rua ', ' Cliente', 'Ponto de Medida', 'CIL',
               'Número', 'Marca', 'Função', 'Anterior', 'Atual', 'Anomalia']
              ]
 
-    # remover coluna de index
-    geral6.set_index('Nr. Roteiro', inplace=True)
-
-    st.dataframe(geral6)
 
 
-    # converção do ficheiro para o formato csv e baixar o mesmo
-    @st.cache_data
-    def convert_df2(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(sep=';', decimal=',').encode('utf-8-sig')
+# importar leitura remota
+    upload_file = st.file_uploader("Importar Periodo Facturação", type="xlsx")
+    if upload_file:
+        st.markdown("---")
+        periodo = carregar_periodo()
+        periodo.head()
+        fact_periodo = pd.merge(geral6, periodo, on='CIL', how='left')
+
+        fact2 = fact_periodo.loc[:,
+                 ['Data Time', 'Periodo', 'Nr. Roteiro', 'Roteiro', 'Ciclo', 'Itinerário', 'Zona ', ' Rua ', ' Cliente',
+                  'Ponto de Medida', 'CIL',
+                  'Número', 'Marca', 'Função', 'Anterior', 'Atual', 'Anomalia']
+                 ]
+
+        # remover coluna de index
+        fact2.set_index('Data Time', inplace=True)
+
+        st.dataframe(fact2)
 
 
-    csv = convert_df2(geral6)
+        # converção do ficheiro para o formato csv e baixar o mesmo
+        @st.cache_data
+        def convert_df2(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv(sep=';', decimal=',').encode('utf-8-sig')
 
-    st.download_button(
-        label="Download Analise",
-        data=csv,
-        file_name='Analise Leitura.csv',
-        mime='text/csv',
+
+        csv = convert_df2(fact_periodo)
+
+        st.download_button(
+            label="Download Analise",
+            data=csv,
+            file_name='Analise Leitura.csv',
+            mime='text/csv',
+
     )
-
-
 
